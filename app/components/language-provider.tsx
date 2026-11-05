@@ -18,7 +18,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     "header.season": "Season 2",
     "header.openSource": "Open Source",
-    "header.tooltip.openSource": "AI 기반 주식 분석 및 매매 시스템 • MIT License",
+    "header.tooltip.openSource": "AI 기반 주식 분석 및 매매 시스템 • AGPL-3.0",
     "header.startDate": "시작: 2025.09.29",
     "header.updated": "업데이트",
     "header.realtimeUpdate": "실시간 업데이트",
@@ -489,7 +489,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Footer
     "footer.description": "AI 기반 한국·미국 주식 분석 및 자동매매 시스템",
-    "footer.openSource": "완전 오픈소스 무료 프로젝트 • MIT License",
+    "footer.openSource": "완전 오픈소스 무료 프로젝트 • AGPL-3.0",
     "footer.features": "주요 기능",
     "footer.feature1": "13개 AI 에이전트 협업 분석 (한국·미국)",
     "footer.feature2": "주도주 자동 포착 & 분석 리포트",
@@ -506,7 +506,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     "header.season": "Season 2",
     "header.openSource": "Open Source",
-    "header.tooltip.openSource": "AI-powered Stock Analysis & Trading System • MIT License",
+    "header.tooltip.openSource": "AI-powered Stock Analysis & Trading System • AGPL-3.0",
     "header.startDate": "Start: 2025.09.29",
     "header.updated": "Updated",
     "header.realtimeUpdate": "Real-time Update",
@@ -977,7 +977,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Footer
     "footer.description": "AI-powered KR·US Stock Analysis & Auto-Trading System",
-    "footer.openSource": "Fully Open Source & Free • MIT License",
+    "footer.openSource": "Fully Open Source & Free • AGPL-3.0",
     "footer.features": "Key Features",
     "footer.feature1": "13 AI Agents Collaborative Analysis (KR·US)",
     "footer.feature2": "Automated Leader Stock Detection & Reports",

@@ -15,7 +15,7 @@ export function ProjectFooter() {
               {/* 프로젝트 소개 */}
               <div className="space-y-3">
                 <h3 className="text-[15px] font-semibold tracking-tight">
-                  PRISM-INSIGHT
+                  stock-analysis
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {t("footer.description")}
@@ -151,42 +151,18 @@ export function ProjectFooter() {
             <div className="mt-6 pt-6 border-t border-border/30">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
                 <div className="flex flex-col md:flex-row items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <span>© 2025–2026 PRISM-INSIGHT</span>
-                    <span className="hidden md:inline">•</span>
-                    <span className="text-xs">All rights reserved</span>
-                  </div>
-                  {/* Platinum Sponsor - Inline */}
-                  <div className="flex items-center gap-2">
-                    <span className="hidden md:inline text-muted-foreground/40">•</span>
-                    <a
-                      href="https://wrks.ai/en"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-2 px-2.5 py-1 rounded-md border border-border hover:bg-accent transition-colors"
-                    >
-                      <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                        Platinum Sponsor
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <img
-                          src={(process.env.NEXT_PUBLIC_BASE_PATH || "") + "/wrks_ai_logo.png"}
-                          alt="WrksAI"
-                          className="h-3.5 w-auto opacity-80 group-hover:opacity-100 transition-opacity"
-                        />
-                        <span className="text-xs text-muted-foreground/90 group-hover:text-foreground transition-colors font-medium">
-                          WrksAI
-                        </span>
-                      </div>
-                    </a>
-                  </div>
+                  <span>
+                    <a href="https://github.com/dragon1086/prism-insight" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">PRISM-INSIGHT</a>
+                    {" "}오픈소스(AGPL-3.0) 기반 개인 사본 · 보증 없음 ·{" "}
+                    <a href="https://github.com/Bongsuk-Yi/stock-analysis" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">소스 코드</a>
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded border border-border text-xs">
                     Open Source
                   </span>
                   <span className="px-2 py-0.5 rounded border border-border text-xs">
-                    MIT License
+                    AGPL-3.0
                   </span>
                 </div>
               </div>

@@ -22,7 +22,7 @@ const walk = (d) => readdirSync(d).flatMap((f) => { const p = join(d, f); return
 let h = 0;
 for (const f of walk(SITE).filter((p) => p.endsWith('.html'))) {
   const html = readFileSync(f, 'utf8').replace(/<\/body>/i, LOCK_SNIPPET(STORE_KEY) + '</body>');
-  writeFileSync(f, gatePage({ title: 'PRISM-INSIGHT', mark: '🔷', storeKey: STORE_KEY, envelope: encrypt(html, pw, K), theme: 'dark' }));
+  writeFileSync(f, gatePage({ title: 'stock-analysis', mark: '📈', storeKey: STORE_KEY, envelope: encrypt(html, pw, K), theme: 'dark' }));
   h++;
 }
 writeFileSync(join(SITE, '.nojekyll'), '');

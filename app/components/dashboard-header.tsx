@@ -59,23 +59,6 @@ export function DashboardHeader({ activeTab, onTabChange, lastUpdated, market = 
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      {/* Platinum Sponsor Bar */}
-      <div className="hidden sm:block border-b border-border">
-        <div className="container mx-auto px-4 max-w-[1600px]">
-          <div className="flex items-center justify-center py-1 gap-3 text-[11px] text-muted-foreground">
-            <span className="uppercase tracking-[0.14em]">Platinum Sponsor</span>
-            <a
-              href="https://wrks.ai/en"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-foreground/80 hover:text-foreground transition-colors"
-            >
-              <img src={(process.env.NEXT_PUBLIC_BASE_PATH || "") + "/wrks_ai_logo.png"} alt="WrksAI" className="h-4 w-auto" />
-              <span className="font-medium">WrksAI</span>
-            </a>
-          </div>
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 max-w-[1600px]">
         <div className="flex h-14 items-center gap-4">
@@ -84,7 +67,7 @@ export function DashboardHeader({ activeTab, onTabChange, lastUpdated, market = 
             <img src={(process.env.NEXT_PUBLIC_BASE_PATH || "") + "/prism-logo.png"} alt="" className="h-6 sm:h-7 w-auto shrink-0" />
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-[15px] font-semibold tracking-tight whitespace-nowrap">PRISM-INSIGHT</h1>
+                <h1 className="text-[15px] font-semibold tracking-tight whitespace-nowrap">stock-analysis</h1>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -198,15 +181,6 @@ export function DashboardHeader({ activeTab, onTabChange, lastUpdated, market = 
                 </button>
               ))}
             </div>
-            <a
-              href="https://wrks.ai/en"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 shrink-0 text-[10px] uppercase tracking-wider text-muted-foreground"
-            >
-              Sponsor
-              <img src={(process.env.NEXT_PUBLIC_BASE_PATH || "") + "/wrks_ai_logo.png"} alt="WrksAI" className="h-4 w-auto" />
-            </a>
           </div>
         )}
 

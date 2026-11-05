@@ -74,3 +74,39 @@ if 'sync-shim.js' not in s:
     s = s.replace('<body', head, 1)
 open(lp, 'w', encoding='utf-8').write(s)
 print('layout patched')
+
+# 5) 이 사본의 표시: 사이트 이름 stock-analysis, 스폰서 표시 제거, 하단 저작권 줄을 라이선스 고지로 교체
+SITE = 'stock-analysis'
+REPO = 'https://github.com/Bongsuk-Yi/stock-analysis'
+hp = os.path.join(root, 'components', 'dashboard-header.tsx'); s = open(hp, encoding='utf-8').read()
+s = re.sub(r'\s*\{/\* Platinum Sponsor Bar \*/\}\s*<div className="hidden sm:block border-b border-border">.*?</a>\s*</div>\s*</div>\s*</div>', '', s, count=1, flags=re.S)
+s = re.sub(r'\s*<a\s+href="https://wrks\.ai/en"[^>]*>\s*Sponsor\s*<img[^>]*/>\s*</a>', '', s, count=1, flags=re.S)
+s = s.replace('whitespace-nowrap">PRISM-INSIGHT</h1>', f'whitespace-nowrap">{SITE}</h1>')
+open(hp, 'w', encoding='utf-8').write(s)
+assert 'wrks.ai' not in s and SITE in s, 'header patch failed'
+
+fp = os.path.join(root, 'components', 'project-footer.tsx'); s = open(fp, encoding='utf-8').read()
+s = s.replace('<h3 className="text-[15px] font-semibold tracking-tight">\n                  PRISM-INSIGHT\n                </h3>',
+              f'<h3 className="text-[15px] font-semibold tracking-tight">\n                  {SITE}\n                </h3>')
+notice = f'''<div className="flex flex-col md:flex-row items-center gap-2">
+                  <span>
+                    <a href="https://github.com/dragon1086/prism-insight" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">PRISM-INSIGHT</a>
+                    {{" "}}오픈소스(AGPL-3.0) 기반 개인 사본 · 보증 없음 ·{{" "}}
+                    <a href="{REPO}" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">소스 코드</a>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">'''
+s, n = re.subn(r'<div className="flex flex-col md:flex-row items-center gap-2">\s*<div className="flex items-center gap-2">\s*<span>© .*?</a>\s*</div>\s*</div>\s*<div className="flex items-center gap-2">', notice, s, count=1, flags=re.S)
+s = s.replace('MIT License\n', 'AGPL-3.0\n')
+open(fp, 'w', encoding='utf-8').write(s)
+assert n == 1 and 'wrks.ai' not in s and 'All rights reserved' not in s, 'footer patch failed'
+
+lp = os.path.join(root, 'app', 'layout.tsx'); s = open(lp, encoding='utf-8').read()
+s = s.replace('title: "Prism Insight Dashboard"', f'title: "{SITE}"')
+open(lp, 'w', encoding='utf-8').write(s)
+print('branding patched')
+
+# 6) 실제 라이선스 표기(원본 저장소 LICENSE 는 AGPL-3.0)
+gp = os.path.join(root, 'components', 'language-provider.tsx'); s = open(gp, encoding='utf-8').read()
+open(gp, 'w', encoding='utf-8').write(s.replace('MIT License', 'AGPL-3.0'))
+print('license text patched')

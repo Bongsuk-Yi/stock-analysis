@@ -6,7 +6,7 @@ import { LanguageProvider } from "@/components/language-provider"
 
 
 export const metadata: Metadata = {
-  title: "Prism Insight Dashboard",
+  title: "stock-analysis",
   description: "AI Agent-based Korean Stock Analysis & Trading System",
   generator: "v0.app",
 }
