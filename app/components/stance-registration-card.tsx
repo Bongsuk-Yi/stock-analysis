@@ -1,0 +1,270 @@
+"use client"
+
+import { FormEvent, useEffect, useState } from "react"
+import { Check, ChevronDown, Copy, KeyRound, Loader2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+
+type Registration = {
+  strategy: string
+  market: string
+  cadence: string
+  api_key: string
+  notice: string
+}
+
+const API_BASE = (process.env.NEXT_PUBLIC_BASE_PATH || "") + "/api/stance/v1"
+
+export function StanceRegistrationCard({ ko }: { ko: boolean }) {
+  const [strategy, setStrategy] = useState("")
+  const [displayName, setDisplayName] = useState("")
+  const [handle, setHandle] = useState("")
+  const [ownerName, setOwnerName] = useState("")
+  const [tagline, setTagline] = useState("")
+  const [description, setDescription] = useState("")
+  const [websiteUrl, setWebsiteUrl] = useState("")
+  const [sourceUrl, setSourceUrl] = useState("")
+  const [market, setMarket] = useState("KRX")
+  const [cadence, setCadence] = useState("daily")
+  const [registration, setRegistration] = useState<Registration | null>(null)
+  const [error, setError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [manualOpen, setManualOpen] = useState(false)
+  const [publicApiBase, setPublicApiBase] = useState(API_BASE)
+
+  useEffect(() => {
+    setPublicApiBase(`${window.location.origin}${API_BASE}`)
+  }, [])
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSubmitting(true)
+    setError("")
+    try {
+      const response = await fetch(`${API_BASE}/strategies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          strategy,
+          display_name: displayName,
+          handle,
+          market,
+          cadence,
+          owner_name: ownerName || null,
+          tagline: tagline || null,
+          description: description || null,
+          website_url: websiteUrl || null,
+          source_url: sourceUrl || null,
+        }),
+      })
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(body.error ?? body.detail ?? `HTTP ${response.status}`)
+      }
+      setRegistration(body)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : (ko ? "등록에 실패했습니다" : "Registration failed"))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function copyKey() {
+    if (!registration) return
+    await navigator.clipboard.writeText(registration.api_key)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 2_000)
+  }
+
+  if (registration) {
+    return (
+      <Card className="gap-0 py-0 rounded-lg shadow-none">
+        <CardHeader className="px-5 pt-4 pb-3 border-b">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            <KeyRound className="h-4 w-4 text-success" aria-hidden="true" />
+            {ko ? "전략 등록 완료" : "Strategy registered"}
+            <Badge variant="outline" className="ml-auto font-mono text-[11px] font-normal text-muted-foreground">{registration.strategy}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-5 space-y-5">
+          <div>
+            <Label>{ko ? "연결용 비밀키 · 지금 한 번만 표시" : "Secret connection key · shown once"}</Label>
+            <div className="mt-2 flex gap-2">
+              <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-muted px-3 py-2.5 font-mono text-[13px] text-foreground">
+                {registration.api_key}
+              </code>
+              <Button type="button" variant="outline" onClick={copyKey} aria-label={ko ? "API 키 복사" : "Copy API key"}>
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+              {ko
+                ? "페이지를 닫으면 다시 볼 수 없습니다. 지금 비밀 저장소에 보관하세요."
+                : "You cannot reveal this key again. Store it in your secret manager now."}
+            </p>
+          </div>
+
+          <div>
+            <Label>{ko ? "전략이 기록을 보낼 주소" : "Where the strategy sends records"}</Label>
+            <code className="mt-2 block overflow-x-auto rounded-md border bg-muted px-3 py-2.5 font-mono text-[13px]">{publicApiBase}</code>
+          </div>
+
+          <pre className="overflow-x-auto rounded-md border bg-muted p-4 font-mono text-[11px] leading-relaxed text-foreground">
+{`curl -X POST ${publicApiBase}/stances \\
+  -H "Authorization: Bearer ${registration.api_key}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"protocol":"stance/1","seq":1,"kind":"hold","reason":"no signal"}'`}
+          </pre>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Collapsible open={manualOpen} onOpenChange={setManualOpen}>
+      <Card className="gap-0 py-0 rounded-lg shadow-none">
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-4 rounded-lg px-5 py-4 text-left transition-colors hover:bg-muted/40"
+          >
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                {ko ? "AI 없이 직접 등록하기" : "Register without an AI"}
+                <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground">{ko ? "선택" : "Optional"}</Badge>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {ko
+                  ? "직접 코드를 연결할 개발자용 등록 양식"
+                  : "Manual registration for developers integrating the code themselves"}
+              </p>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${manualOpen ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="border-t p-4 sm:p-5">
+        <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="stance-strategy">{ko ? "전략 주소용 ID (영문)" : "Strategy ID for URLs"}</Label>
+            <Input
+              id="stance-strategy"
+              value={strategy}
+              onChange={(event) => setStrategy(event.target.value)}
+              placeholder="my-strategy"
+              pattern="[A-Za-z0-9][A-Za-z0-9._-]*"
+              maxLength={64}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="stance-name">{ko ? "사람들에게 보여줄 전략 이름" : "Public strategy name"}</Label>
+            <Input
+              id="stance-name"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              placeholder={ko ? "돌파 추세 전략" : "Breakout Trend"}
+              maxLength={100}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="stance-handle">{ko ? "운영자 닉네임" : "Operator handle"}</Label>
+            <Input
+              id="stance-handle"
+              value={handle}
+              onChange={(event) => setHandle(event.target.value)}
+              placeholder="@myhandle"
+              maxLength={100}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>{ko ? "시장" : "Market"}</Label>
+              <Select value={market} onValueChange={setMarket}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="KRX">KRX</SelectItem>
+                  <SelectItem value="US">US</SelectItem>
+                  <SelectItem value="CRYPTO">Crypto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{ko ? "투자 판단 빈도" : "Decision frequency"}</Label>
+              <Select value={cadence} onValueChange={setCadence}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">{ko ? "매일" : "Daily"}</SelectItem>
+                  <SelectItem value="weekly">{ko ? "매주" : "Weekly"}</SelectItem>
+                  <SelectItem value="monthly">{ko ? "매월" : "Monthly"}</SelectItem>
+                  <SelectItem value="event">{ko ? "신호 발생 시" : "On signal"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <details className="sm:col-span-2 rounded-md border">
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
+              {ko ? "선택사항 · 전략을 소개하고 링크 알리기" : "Optional · Introduce and link your strategy"}
+            </summary>
+            <div className="grid gap-4 border-t p-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="stance-owner">{ko ? "운영자·팀 이름" : "Operator or team"}</Label>
+                <Input id="stance-owner" value={ownerName} onChange={(event) => setOwnerName(event.target.value)} maxLength={100} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stance-tagline">{ko ? "한 줄 소개" : "Tagline"}</Label>
+                <Input id="stance-tagline" value={tagline} onChange={(event) => setTagline(event.target.value)} maxLength={120} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="stance-description">{ko ? "상세 소개" : "Description"}</Label>
+                <Textarea id="stance-description" value={description} onChange={(event) => setDescription(event.target.value)} maxLength={500} rows={3} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stance-website">{ko ? "대표 링크" : "Website"}</Label>
+                <Input id="stance-website" type="url" inputMode="url" value={websiteUrl} onChange={(event) => setWebsiteUrl(event.target.value)} placeholder="https://" maxLength={500} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stance-source">{ko ? "소스 저장소" : "Source repository"}</Label>
+                <Input id="stance-source" type="url" inputMode="url" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder="https://github.com/..." maxLength={500} />
+              </div>
+              <p className="text-xs text-muted-foreground sm:col-span-2">
+                {ko ? "모두 선택사항이며 점수와 순위에는 영향을 주지 않습니다. 공개 링크는 HTTPS만 허용합니다." : "All fields are optional and never affect scoring or rank. Public links must use HTTPS."}
+              </p>
+            </div>
+          </details>
+
+          {error && (
+            <div className="sm:col-span-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-1">
+            <p className="text-xs text-muted-foreground">
+              {ko ? "잔고 · 계좌번호 · 증권사 키 수집 없음" : "No balances, account numbers, or broker keys"}
+            </p>
+            <Button type="submit" disabled={submitting}>
+              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {ko ? "전략 등록하고 연결키 받기" : "Register and get connection key"}
+            </Button>
+          </div>
+        </form>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  )
+}

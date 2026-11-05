@@ -1,0 +1,104 @@
+name: Sync & Deploy
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'      # 30분마다 원본 데이터 확인 (바뀐 경우에만 배포)
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '데이터가 같아도 다시 배포'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      deploy: ${{ steps.decide.outputs.deploy }}
+    env:
+      SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+      NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: 원본 데이터 받기
+        id: sync
+        run: node scripts/sync.mjs
+
+      - name: 이전 배포와 같은 데이터인지 확인
+        id: seen
+        uses: actions/cache/restore@v4
+        with:
+          path: data/.hash
+          key: deployed-${{ github.sha }}-${{ steps.sync.outputs.hash }}
+          lookup-only: true
+
+      - id: decide
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ] || [ "${{ inputs.force }}" = "true" ] || [ "${{ steps.seen.outputs.cache-hit }}" != "true" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"; echo "새 데이터 또는 코드 변경 → 배포"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"; echo "변경 없음 → 배포 생략"
+          fi
+
+      - name: 정적 사이트 빌드 캐시
+        if: steps.decide.outputs.deploy == 'true'
+        id: buildcache
+        uses: actions/cache@v4
+        with:
+          path: app/out
+          key: out-${{ hashFiles('app/**', '!app/out/**', '!app/node_modules/**') }}-${{ github.event.repository.name }}
+
+      - name: 대시보드 빌드
+        if: steps.decide.outputs.deploy == 'true' && steps.buildcache.outputs.cache-hit != 'true'
+        working-directory: app
+        run: |
+          npm ci --legacy-peer-deps
+          npx next build
+
+      - name: 암호화 · 비밀번호 게이트
+        if: steps.decide.outputs.deploy == 'true'
+        run: node scripts/pack.mjs
+
+      - uses: actions/configure-pages@v5
+        if: steps.decide.outputs.deploy == 'true'
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.decide.outputs.deploy == 'true'
+        with:
+          path: site
+
+      - name: 배포한 데이터 기록
+        if: steps.decide.outputs.deploy == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: data/.hash
+          key: deployed-${{ github.sha }}-${{ steps.sync.outputs.hash }}
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
